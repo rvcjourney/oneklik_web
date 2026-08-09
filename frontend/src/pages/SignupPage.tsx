@@ -25,12 +25,13 @@ export default function SignupPage() {
     navigate("/verify-email", { state: { email } });
   }
 
-  async function handleGoogle() {
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: window.location.origin },
-    });
-  }
+  // Google sign-in disabled for now — not needed yet.
+  // async function handleGoogle() {
+  //   await supabase.auth.signInWithOAuth({
+  //     provider: "google",
+  //     options: { redirectTo: window.location.origin },
+  //   });
+  // }
 
   return (
     <AuthLayout>
@@ -65,9 +66,11 @@ export default function SignupPage() {
               {submitting ? "Creating account…" : "Sign up"}
             </Button>
           </Form>
+          {/* Google sign-in disabled for now — not needed yet.
           <Button variant="outline-secondary" className="w-100 mb-3" onClick={handleGoogle}>
             Continue with Google
           </Button>
+          */}
           <p className="text-center small mb-0">
             Already have an account? <Link to="/login">Log in</Link>
           </p>
