@@ -168,7 +168,7 @@ export function renderInvoiceHtml(model: InvoiceRenderModel): string {
 <body>
   <div class="page">
     <div class="header">
-      <p class="logo">Quick ICP</p>
+      <p class="logo">QuickICP</p>
       <div class="doc-right">
         <h1>${escapeHtml(model.document_title)}</h1>
         <div class="inv-no mono">${escapeHtml(model.invoice_number)}</div>

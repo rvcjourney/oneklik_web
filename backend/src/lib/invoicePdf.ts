@@ -16,7 +16,7 @@ export function renderInvoicePdf(model: InvoiceRenderModel): Promise<Buffer> {
       margins: { top: PAGE_MARGIN, bottom: PAGE_MARGIN, left: PAGE_MARGIN, right: PAGE_MARGIN },
       info: {
         Title: model.invoice_number,
-        Author: "Quick ICP",
+        Author: "QuickICP",
         Subject: model.document_title,
       },
     });
@@ -31,7 +31,7 @@ export function renderInvoicePdf(model: InvoiceRenderModel): Promise<Buffer> {
     let y = PAGE_MARGIN;
 
     // Header: brand left, title + INV right
-    doc.fillColor(BRAND).font("Helvetica-Bold").fontSize(18).text("Quick ICP", left, y, { lineBreak: false });
+    doc.fillColor(BRAND).font("Helvetica-Bold").fontSize(18).text("QuickICP", left, y, { lineBreak: false });
     doc.fillColor("#111").font("Helvetica-Bold").fontSize(20).text(model.document_title, left, y, {
       width: CONTENT_WIDTH,
       align: "right",

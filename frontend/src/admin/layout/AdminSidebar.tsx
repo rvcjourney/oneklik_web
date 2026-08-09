@@ -102,7 +102,7 @@ export default function AdminSidebar({ mobileOpen, onClose }: AdminSidebarProps)
         <div className="app-sidebar-header">
           <Link to="/admin" className="app-sidebar-brand" onClick={onClose}>
             <img src={logo} alt="" className="app-sidebar-brand-logo" />
-            <span className="app-sidebar-brand-full">Quick ICP Admin</span>
+            <span className="app-sidebar-brand-full">QuickICP Admin</span>
           </Link>
           <button
             type="button"

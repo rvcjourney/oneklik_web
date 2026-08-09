@@ -4,7 +4,7 @@
 
 > **⚠️ This is a draft.** It has **not been reviewed by a lawyer**. Before publishing this to real users, have it reviewed — particularly Sections 6 (Refunds), 9 (Liability), and 13 (Governing Law), which carry real financial and legal consequences if worded incorrectly. `[BRACKETED]` fields are placeholders that need real values before this goes live.
 
-These Terms of Service ("Terms") govern your access to and use of **One-Klik** (the "Service"), operated by **[LEGAL ENTITY NAME]** ("One-Klik", "we", "us"). By creating an account or using the Service, you agree to these Terms. If you don't agree, don't use the Service.
+These Terms of Service ("Terms") govern your access to and use of **QuickICP** (the "Service"), operated by **[LEGAL ENTITY NAME]** ("QuickICP", "we", "us"). By creating an account or using the Service, you agree to these Terms. If you don't agree, don't use the Service.
 
 ---
 
@@ -17,7 +17,7 @@ These Terms of Service ("Terms") govern your access to and use of **One-Klik** (
 
 ## 2. Description of the Service
 
-One-Klik provides company and people search, contact reveal (email/phone), LinkedIn profile lookup, and related list-management tools, funded by a credit balance that's replenished through monthly subscription plans. Specific features, pricing, and credit costs are as described in the app at the time of use and may change with notice (see §11).
+QuickICP provides company and people search, contact reveal (email/phone), LinkedIn profile lookup, and related list-management tools, funded by a credit balance that's replenished through monthly subscription plans. Specific features, pricing, and credit costs are as described in the app at the time of use and may change with notice (see §11).
 
 **Data accuracy disclaimer:** business contact information returned by the Service is sourced from third-party data providers and enrichment partners. We do not guarantee the accuracy, completeness, or currency of any company or contact data returned by a search or reveal. You use this data at your own discretion and risk.
 
@@ -69,7 +69,7 @@ You may stop using the Service and request account closure at any time by contac
 
 ## 8. Intellectual Property
 
-- The Service, its software, design, and branding are owned by One-Klik and are not transferred to you by using the Service.
+- The Service, its software, design, and branding are owned by QuickICP and are not transferred to you by using the Service.
 - Data returned to you through a search or reveal is licensed to you for your own business use (e.g. outreach, CRM enrichment) — not for resale or redistribution as a standalone dataset to third parties.
 - Feedback or suggestions you provide about the Service may be used by us without obligation to you.
 
@@ -77,12 +77,12 @@ You may stop using the Service and request account closure at any time by contac
 
 - The Service is provided "as is" without warranties of any kind, express or implied, including fitness for a particular purpose or non-infringement.
 - We do not warrant that the Service will be uninterrupted, error-free, or that data returned will be accurate or complete.
-- To the maximum extent permitted by law, One-Klik's total liability arising from your use of the Service is limited to the amount you paid us in the 3 months preceding the claim. We are not liable for indirect, incidental, or consequential damages.
+- To the maximum extent permitted by law, QuickICP's total liability arising from your use of the Service is limited to the amount you paid us in the 3 months preceding the claim. We are not liable for indirect, incidental, or consequential damages.
 - Nothing in this section limits liability where such limitation is not permitted by applicable law.
 
 ## 10. Indemnification
 
-You agree to indemnify and hold One-Klik harmless from claims arising out of your violation of these Terms or your misuse of data obtained through the Service — including claims arising from how you contact or use information about individuals found via a search.
+You agree to indemnify and hold QuickICP harmless from claims arising out of your violation of these Terms or your misuse of data obtained through the Service — including claims arising from how you contact or use information about individuals found via a search.
 
 ## 11. Changes to These Terms
 
@@ -90,10 +90,10 @@ We may update these Terms from time to time. Material changes will be reflected 
 
 ## 12. Governing Law & Disputes
 
-These Terms are governed by the laws of India. Any dispute arising from these Terms or the Service will be subject to the exclusive jurisdiction of the courts of **[CITY, STATE]**, India. [If you intend to serve international customers, have a lawyer confirm whether this needs adjustment for enforceability in other jurisdictions, and whether an arbitration clause is preferable to court jurisdiction.]
+These Terms are governed by the laws of India. Any dispute arising from these Terms or the Service will be subject to the exclusive jurisdiction of the courts of **Pune, Maharashtra**, India. [If you intend to serve international customers, have a lawyer confirm whether this needs adjustment for enforceability in other jurisdictions, and whether an arbitration clause is preferable to court jurisdiction.]
 
 ## 13. Contact
 
-Questions about these Terms: **[SUPPORT/LEGAL EMAIL]**
+Questions about these Terms: **support@quickicp.com**
 
-**Registered business address:** [LEGAL ENTITY NAME AND ADDRESS]
+**Registered business address:** QuickICP, First Floor, Reality Warehousing Pvt Ltd, GAT NO.-1337/1, Pune Nagar Road, Above Reliance Smart, Wagholi, Pune, Maharashtra 412207, India

@@ -29,7 +29,7 @@
   src: url('/fonts/Inter-700.woff2') format('woff2');
 }
 
-/* ── Brand palette — derived from the Quick ICP brand blue
+/* ── Brand palette — derived from the QuickICP brand blue
    oklch(0.548 0.223 262.9) ─────────────────────────────────────────────
    Same hue (262.9°) at every stop so the scale reads as one considered
    color, not "a blue and some unrelated greys." ─────────────────────── */
