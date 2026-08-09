@@ -14,7 +14,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <div className="auth-visual">
         <div className="auth-visual-brand">
           <img src={logo} alt="" className="auth-visual-logo" />
-          Quick ICP
+          QuickICP
         </div>
 
         <div>

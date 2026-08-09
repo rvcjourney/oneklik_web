@@ -63,7 +63,7 @@ export function renderPaymentReceiptHtml(model: PaymentReceiptRenderModel): stri
 </head>
 <body>
   <div class="page">
-    <p class="brand">Quick ICP</p>
+    <p class="brand">QuickICP</p>
     <h1>Payment Receipt</h1>
     <p class="ack">This is to acknowledge that we have received your payment.</p>
 

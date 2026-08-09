@@ -329,8 +329,8 @@ export function invoiceToReceiptModel(invoice: InvoiceRow, buyerEmail?: string |
     description,
     amount_paid_label: moneyLabel,
     payment_method: paymentMethodLabel(snap),
-    seller_name: sellerDisplay.legal_name ?? "Quick ICP",
-    seller_support_email: sellerDisplay.billing_email ?? "quickicp@gmail.com",
+    seller_name: sellerDisplay.legal_name ?? "QuickICP",
+    seller_support_email: sellerDisplay.billing_email ?? "support@quickicp.com",
   };
 }
 

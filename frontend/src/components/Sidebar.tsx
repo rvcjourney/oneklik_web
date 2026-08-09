@@ -62,7 +62,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
         <div className="app-sidebar-header">
           <Link to="/dashboard" className="app-sidebar-brand" onClick={onClose}>
             <img src={logo} alt="" className="app-sidebar-brand-logo" />
-            <span className="app-sidebar-brand-full">Quick ICP</span>
+            <span className="app-sidebar-brand-full">QuickICP</span>
           </Link>
           <button
             type="button"
