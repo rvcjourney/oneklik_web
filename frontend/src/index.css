@@ -960,16 +960,173 @@ label.text-uppercase,
   border-radius: 12px;
 }
 
-.email-templates-card-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+.email-template-usage-pill {
+  display: inline-block;
+  border: 1px solid var(--brand-300);
+  color: var(--brand-700);
   background: var(--brand-50);
-  color: var(--brand-600);
+  border-radius: 999px;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.email-template-usage-pill.is-muted {
+  border-color: var(--line);
+  color: var(--ink-dim);
+  background: #fff;
+}
+
+.email-template-step-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.email-template-step-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--brand-600);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+.email-template-step-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--ink);
+}
+
+.email-template-reset-link {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--brand-600);
+}
+
+.email-template-reset-link:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.email-template-reset-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.email-template-input-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.email-template-input-icon > svg {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--ink-dim);
+  pointer-events: none;
+}
+
+.email-template-input-icon > .form-control {
+  padding-left: 2.1rem;
+}
+
+.email-template-collapse-group {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.email-template-collapse + .email-template-collapse {
+  border-top: 1px solid var(--line);
+}
+
+.email-template-collapse-toggle {
+  width: 100%;
+  appearance: none;
+  border: none;
+  background: #fff;
+  padding: 0.7rem 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  text-align: left;
+  font-size: 0.85rem;
+}
+
+.email-template-collapse-toggle:hover {
+  background: var(--brand-50);
+}
+
+.email-template-collapse-icon {
+  color: var(--brand-600);
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.email-template-collapse-title {
+  font-weight: 600;
+  color: var(--ink);
+  flex: 1;
+}
+
+.email-template-collapse-chevron {
+  color: var(--ink-dim);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.email-template-collapse-chevron.is-open {
+  transform: rotate(90deg);
+}
+
+.email-template-collapse-body {
+  padding: 0.9rem;
+  border-top: 1px solid var(--line);
+  background: var(--page-bg);
+}
+
+.email-template-ready-badge {
+  font-weight: 600;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.email-template-kebab-toggle {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink-dim);
+  border-radius: 6px;
+  width: 31px;
+  height: 31px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.email-template-kebab-toggle:hover {
+  background: var(--brand-50);
+  color: var(--brand-600);
+}
+
+.email-template-kebab-toggle::after {
+  display: none;
 }
 
 .email-templates-empty {

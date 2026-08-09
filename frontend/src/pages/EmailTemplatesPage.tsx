@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
   Alert,
   Badge,
@@ -6,6 +6,7 @@ import {
   Card,
   Col,
   Container,
+  Dropdown,
   Form,
   Modal,
   Row,
@@ -13,15 +14,22 @@ import {
   Table,
 } from "react-bootstrap";
 import {
+  ArrowClockwise,
+  ChevronRight,
   Clipboard,
   ClipboardCheck,
   EnvelopePaper,
+  Link45deg,
   Stars,
+  ThreeDotsVertical,
 } from "react-bootstrap-icons";
 import AppLayout from "../components/AppLayout";
 import { useAuth } from "../lib/AuthProvider";
 import {
+  EMAIL_TEMPLATE_EMAIL_TYPES,
   EMAIL_TEMPLATE_LENGTHS,
+  EMAIL_TEMPLATE_RECIPIENT_TYPES,
+  EMAIL_TEMPLATE_SENDER_ROLES,
   EMAIL_TEMPLATE_TONES,
   fetchEmailTemplate,
   fetchEmailTemplateHistory,
@@ -31,8 +39,11 @@ import {
   updateEmailTemplate,
   uploadAttachment,
   validateAttachmentFile,
+  type EmailTemplateEmailType,
   type EmailTemplateLength,
   type EmailTemplateListItem,
+  type EmailTemplateRecipientType,
+  type EmailTemplateSenderRole,
   type EmailTemplateTone,
   type EmailTemplateUsage,
 } from "../lib/emailTemplatesApi";
@@ -88,16 +99,82 @@ function OptionGroup<T extends string>({
   );
 }
 
+function StepHeader({
+  step,
+  title,
+  action,
+}: {
+  step: number;
+  title: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="email-template-step-header">
+      <span className="email-template-step-badge" aria-hidden>
+        {step}
+      </span>
+      <h3 className="email-template-step-title">{title}</h3>
+      {action && <div className="ms-auto">{action}</div>}
+    </div>
+  );
+}
+
+function CollapsibleSection({
+  icon,
+  title,
+  hint,
+  defaultOpen = false,
+  children,
+}: {
+  icon: ReactNode;
+  title: string;
+  hint?: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="email-template-collapse">
+      <button
+        type="button"
+        className="email-template-collapse-toggle"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <span className="email-template-collapse-icon" aria-hidden>
+          {icon}
+        </span>
+        <span className="email-template-collapse-title">
+          {title}
+          {hint && <span className="fw-normal text-body-secondary"> {hint}</span>}
+        </span>
+        <ChevronRight
+          size={14}
+          className={`email-template-collapse-chevron${open ? " is-open" : ""}`}
+          aria-hidden
+        />
+      </button>
+      {open && <div className="email-template-collapse-body">{children}</div>}
+    </div>
+  );
+}
+
 export default function EmailTemplatesPage() {
   const { user } = useAuth();
   const bodyTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  const [companyProfile, setCompanyProfile] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [userRequest, setUserRequest] = useState("");
   const [companyWebsite, setCompanyWebsite] = useState("");
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
   const [length, setLength] = useState<EmailTemplateLength>("standard");
   const [tone, setTone] = useState<EmailTemplateTone>("professional");
+  const [emailType, setEmailType] = useState<EmailTemplateEmailType | "">("");
+  const [senderRole, setSenderRole] = useState<EmailTemplateSenderRole | "">("");
+  const [recipientType, setRecipientType] = useState<EmailTemplateRecipientType | "">("");
+  const [senderName, setSenderName] = useState("");
+  const [recipientName, setRecipientName] = useState("");
+  const [productOrService, setProductOrService] = useState("");
   const [rewriteLength, setRewriteLength] = useState<EmailTemplateLength>("standard");
   const [rewriteTone, setRewriteTone] = useState<EmailTemplateTone>("professional");
   const [rewriteInstruction, setRewriteInstruction] = useState("");
@@ -123,11 +200,11 @@ export default function EmailTemplatesPage() {
   const [saveNotice, setSaveNotice] = useState<string | null>(null);
   const [copied, setCopied] = useState<"subject" | "body" | null>(null);
 
-  const profileBlank = !companyProfile.trim();
+  const nameBlank = !companyName.trim();
   const websiteBlank = !companyWebsite.trim();
   const requestBlank = !userRequest.trim();
-  const canSubmit = !(profileBlank && websiteBlank && requestBlank);
-  const requestRequired = profileBlank && websiteBlank;
+  const canSubmit = !(nameBlank && websiteBlank && requestBlank);
+  const requestRequired = nameBlank && websiteBlank;
 
   const dirty =
     resultEditable &&
@@ -140,6 +217,11 @@ export default function EmailTemplatesPage() {
     editSubject.trim().length <= 300;
 
   const hasResult = Boolean(subject || body || resultEditable);
+  const wordCount = editBody.trim() ? editBody.trim().split(/\s+/).length : 0;
+  const generationHint =
+    usage?.has_active_period && usage.free_remaining > 0
+      ? `This will use 1 of your ${usage.free_remaining} remaining free generations`
+      : "This will use 1 credit";
 
   function loadResult(next: {
     id: string;
@@ -203,9 +285,8 @@ export default function EmailTemplatesPage() {
     setShowRewriteModal(false);
   }
 
-  async function handleGenerate(e: FormEvent) {
-    e.preventDefault();
-    if (!canSubmit || !user) return;
+  async function runGenerate() {
+    if (!canSubmit || !user || loading) return;
 
     setLoading(true);
     setError(null);
@@ -224,11 +305,17 @@ export default function EmailTemplatesPage() {
 
       const result = await generateEmailTemplate({
         user_request: userRequest.trim(),
-        company_profile: companyProfile.trim(),
+        company_profile: companyName.trim(),
         company_website: companyWebsite.trim(),
         length,
         tone,
         brochure,
+        email_type: emailType,
+        sender_role: senderRole,
+        recipient_type: recipientType,
+        sender_name: senderName.trim(),
+        recipient_name: recipientName.trim(),
+        product_or_service: productOrService.trim(),
       });
 
       loadResult({
@@ -252,6 +339,27 @@ export default function EmailTemplatesPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleGenerate(e: FormEvent) {
+    e.preventDefault();
+    void runGenerate();
+  }
+
+  function handleResetForm() {
+    if (loading) return;
+    setEmailType("");
+    setUserRequest("");
+    setSenderRole("");
+    setSenderName("");
+    setRecipientType("");
+    setRecipientName("");
+    setCompanyName("");
+    setProductOrService("");
+    setCompanyWebsite("");
+    setLength("standard");
+    setTone("professional");
+    setAttachmentFile(null);
   }
 
   async function openHistoryItem(id: string) {
@@ -352,26 +460,26 @@ export default function EmailTemplatesPage() {
           <div>
             <h1 className="h4 mb-1">Email Template Generator</h1>
             <p className="text-body-secondary mb-0 small">
-              Generate ready-to-use email subject lines and bodies from your company context.
+              Create personalized, high-quality emails in seconds using your context.
             </p>
           </div>
           <div className="text-start text-md-end">
             {usage?.has_active_period ? (
               <>
-                <Badge bg="primary" className="mb-1">
+                <span className="email-template-usage-pill">
                   {usage.free_remaining} of {usage.free_limit} free remaining
-                </Badge>
-                <div className="text-body-secondary small">
+                </span>
+                <div className="text-body-secondary small mt-1">
                   Plan period ends {usage.period_end ? formatWhen(usage.period_end) : "—"}
                   {usage.free_remaining === 0 ? " · further gens cost 1 credit" : ""}
                 </div>
               </>
             ) : (
               <>
-                <Badge bg="secondary" className="mb-1">
-                  1 credit per generation
-                </Badge>
-                <div className="text-body-secondary small">No active plan — free quota unavailable</div>
+                <span className="email-template-usage-pill is-muted">1 credit per generation</span>
+                <div className="text-body-secondary small mt-1">
+                  No active plan — free quota unavailable
+                </div>
               </>
             )}
           </div>
@@ -387,17 +495,42 @@ export default function EmailTemplatesPage() {
           <Col lg={5}>
             <Card className="shadow-sm border-0 email-templates-card">
               <Card.Body className="p-4">
-                <div className="d-flex align-items-center gap-2 mb-3">
-                  <span className="email-templates-card-icon" aria-hidden>
-                    <EnvelopePaper size={16} />
-                  </span>
-                  <h2 className="h6 mb-0">Generate</h2>
-                </div>
-
                 <Form onSubmit={handleGenerate}>
-                  <Form.Group className="mb-3" controlId="userRequest">
+                  <StepHeader
+                    step={1}
+                    title="What do you want to do?"
+                    action={
+                      <button
+                        type="button"
+                        className="email-template-reset-link"
+                        onClick={handleResetForm}
+                        disabled={loading}
+                      >
+                        <ArrowClockwise size={13} />
+                        Reset
+                      </button>
+                    }
+                  />
+
+                  <Form.Group className="mb-3" controlId="emailType">
+                    <Form.Label>Email type</Form.Label>
+                    <Form.Select
+                      value={emailType}
+                      onChange={(e) => setEmailType(e.target.value as EmailTemplateEmailType | "")}
+                      disabled={loading}
+                    >
+                      <option value="">Not specified</option>
+                      {EMAIL_TEMPLATE_EMAIL_TYPES.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+
+                  <Form.Group className="mb-4" controlId="userRequest">
                     <Form.Label>
-                      What do you want?{" "}
+                      What's this email about?{" "}
                       {requestRequired && <span className="text-danger">*</span>}
                     </Form.Label>
                     <Form.Control
@@ -405,84 +538,187 @@ export default function EmailTemplatesPage() {
                       rows={3}
                       value={userRequest}
                       onChange={(e) => setUserRequest(e.target.value)}
-                      placeholder="e.g. Cold outreach to SaaS founders about our analytics product"
+                      placeholder="e.g. Follow up with James after our SaaStr demo — he mentioned inventory tracking challenges."
                       disabled={loading}
                       required={requestRequired}
                     />
                     <Form.Text muted>
-                      Required only when company profile and website are both empty.
+                      Include any specific detail — who it's for, what happened, what you want
+                      them to do.
                     </Form.Text>
                   </Form.Group>
 
-                  <Form.Group className="mb-3" controlId="companyProfile">
-                    <Form.Label>Company profile</Form.Label>
-                    <Form.Control
-                      as="textarea"
-                      rows={4}
-                      value={companyProfile}
-                      onChange={(e) => setCompanyProfile(e.target.value)}
-                      placeholder="What your company does, who you sell to, key differentiators…"
-                      disabled={loading}
-                    />
-                  </Form.Group>
-
-                  <Form.Group className="mb-3" controlId="companyWebsite">
-                    <Form.Label>Website URL</Form.Label>
-                    <Form.Control
-                      type="url"
-                      value={companyWebsite}
-                      onChange={(e) => setCompanyWebsite(e.target.value)}
-                      placeholder="https://example.com"
-                      disabled={loading}
-                    />
-                  </Form.Group>
-
-                  <Row className="g-3 mb-1">
-                    <Col sm={7}>
-                      <OptionGroup
-                        idPrefix="generateLength"
-                        label="Length"
-                        options={EMAIL_TEMPLATE_LENGTHS}
-                        value={length}
-                        disabled={loading}
-                        onChange={setLength}
-                      />
+                  <StepHeader step={2} title="Who is this email from and to?" />
+                  <Row className="g-3 mb-3">
+                    <Col sm={6}>
+                      <Form.Group controlId="senderRole">
+                        <Form.Label>Sender role</Form.Label>
+                        <Form.Select
+                          value={senderRole}
+                          onChange={(e) =>
+                            setSenderRole(e.target.value as EmailTemplateSenderRole | "")
+                          }
+                          disabled={loading}
+                        >
+                          <option value="">Not specified</option>
+                          {EMAIL_TEMPLATE_SENDER_ROLES.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </Form.Select>
+                      </Form.Group>
                     </Col>
-                    <Col sm={5}>
-                      <OptionGroup
-                        idPrefix="generateTone"
-                        label="Tone"
-                        options={EMAIL_TEMPLATE_TONES}
-                        value={tone}
-                        disabled={loading}
-                        onChange={setTone}
-                      />
+                    <Col sm={6}>
+                      <Form.Group controlId="senderName">
+                        <Form.Label>Your name</Form.Label>
+                        <Form.Control
+                          value={senderName}
+                          onChange={(e) => setSenderName(e.target.value)}
+                          placeholder="e.g. Sarah"
+                          disabled={loading}
+                          maxLength={120}
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Row className="g-3 mb-4">
+                    <Col sm={6}>
+                      <Form.Group controlId="recipientType">
+                        <Form.Label>Recipient type</Form.Label>
+                        <Form.Select
+                          value={recipientType}
+                          onChange={(e) =>
+                            setRecipientType(e.target.value as EmailTemplateRecipientType | "")
+                          }
+                          disabled={loading}
+                        >
+                          <option value="">Not specified</option>
+                          {EMAIL_TEMPLATE_RECIPIENT_TYPES.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </Form.Select>
+                      </Form.Group>
+                    </Col>
+                    <Col sm={6}>
+                      <Form.Group controlId="recipientName">
+                        <Form.Label>Recipient name</Form.Label>
+                        <Form.Control
+                          value={recipientName}
+                          onChange={(e) => setRecipientName(e.target.value)}
+                          placeholder="e.g. James"
+                          disabled={loading}
+                          maxLength={120}
+                        />
+                      </Form.Group>
                     </Col>
                   </Row>
 
-                  <Form.Group className="mb-4" controlId="attachment">
-                    <Form.Label>Attachments (optional)</Form.Label>
-                    <Form.Control
-                      type="file"
-                      accept=".pdf,application/pdf"
-                      disabled={loading}
-                      onChange={(e) => {
-                        const input = e.target as HTMLInputElement;
-                        const file = input.files?.[0] ?? null;
-                        setAttachmentFile(file);
-                      }}
-                    />
-                    <Form.Text muted>PDF only · max 5 MB</Form.Text>
-                    {attachmentFile && (
-                      <div className="small mt-1 text-body-secondary">{attachmentFile.name}</div>
-                    )}
+                  <StepHeader step={3} title="Company & product context" />
+                  <Row className="g-3 mb-3">
+                    <Col sm={6}>
+                      <Form.Group controlId="companyName">
+                        <Form.Label>Company name</Form.Label>
+                        <Form.Control
+                          value={companyName}
+                          onChange={(e) => setCompanyName(e.target.value)}
+                          placeholder="e.g. Acme Inc"
+                          disabled={loading}
+                          maxLength={120}
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col sm={6}>
+                      <Form.Group controlId="productOrService">
+                        <Form.Label>Product / service</Form.Label>
+                        <Form.Control
+                          value={productOrService}
+                          onChange={(e) => setProductOrService(e.target.value)}
+                          placeholder="e.g. Odoo ERP"
+                          disabled={loading}
+                          maxLength={120}
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                  <Form.Group className="mb-3" controlId="companyWebsite">
+                    <Form.Label>Website URL</Form.Label>
+                    <div className="email-template-input-icon">
+                      <Link45deg size={14} aria-hidden />
+                      <Form.Control
+                        type="url"
+                        value={companyWebsite}
+                        onChange={(e) => setCompanyWebsite(e.target.value)}
+                        placeholder="https://example.com"
+                        disabled={loading}
+                      />
+                    </div>
                   </Form.Group>
+
+                  <div className="email-template-collapse-group mb-4">
+                    <CollapsibleSection icon={<Stars size={14} />} title="Style & length">
+                      <Row className="g-3">
+                        <Col sm={7}>
+                          <OptionGroup
+                            idPrefix="generateLength"
+                            label="Length"
+                            options={EMAIL_TEMPLATE_LENGTHS}
+                            value={length}
+                            disabled={loading}
+                            onChange={setLength}
+                          />
+                        </Col>
+                        <Col sm={5}>
+                          <OptionGroup
+                            idPrefix="generateTone"
+                            label="Tone"
+                            options={EMAIL_TEMPLATE_TONES}
+                            value={tone}
+                            disabled={loading}
+                            onChange={setTone}
+                          />
+                        </Col>
+                      </Row>
+                    </CollapsibleSection>
+
+                    <CollapsibleSection
+                      icon={<Clipboard size={14} />}
+                      title="Supporting materials"
+                      hint="(optional)"
+                    >
+                      <Form.Text muted className="d-block mb-2">
+                        Upload a brochure, product profile, or company document to help generate a
+                        more accurate email. Used as reference context only — it is not attached to
+                        the email itself.
+                      </Form.Text>
+                      <Form.Control
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        disabled={loading}
+                        onChange={(e) => {
+                          const input = e.target as HTMLInputElement;
+                          const file = input.files?.[0] ?? null;
+                          setAttachmentFile(file);
+                        }}
+                      />
+                      <Form.Text muted>PDF only · max 5 MB</Form.Text>
+                      {attachmentFile && (
+                        <div className="small mt-1 text-success d-flex align-items-center gap-1">
+                          <ClipboardCheck size={14} />
+                          {attachmentFile.name} — selected, uploaded on generate
+                        </div>
+                      )}
+                    </CollapsibleSection>
+                  </div>
 
                   <Button
                     type="submit"
                     variant="primary"
                     disabled={!canSubmit || loading}
-                    className="d-inline-flex align-items-center gap-2"
+                    className="d-flex align-items-center justify-content-center gap-2 w-100"
+                    size="lg"
                   >
                     {loading ? (
                       <>
@@ -491,11 +727,12 @@ export default function EmailTemplatesPage() {
                       </>
                     ) : (
                       <>
-                        <EnvelopePaper size={16} />
-                        Generate template
+                        <Stars size={16} />
+                        Generate Email
                       </>
                     )}
                   </Button>
+                  <div className="text-center text-body-secondary small mt-2">{generationHint}</div>
                 </Form>
               </Card.Body>
             </Card>
@@ -505,7 +742,14 @@ export default function EmailTemplatesPage() {
             <Card className="shadow-sm border-0 email-templates-card">
               <Card.Body className="p-4">
                 <div className="d-flex align-items-center justify-content-between gap-2 mb-3 flex-wrap">
-                  <h2 className="h6 mb-0">Result</h2>
+                  <div className="d-flex align-items-center gap-2">
+                    <h2 className="h6 mb-0">Generated Email</h2>
+                    {hasResult && !loading && (
+                      <Badge bg="success" className="email-template-ready-badge">
+                        Ready
+                      </Badge>
+                    )}
+                  </div>
                   {resultEditable && !loading && (
                     <div className="d-flex align-items-center gap-2 flex-wrap">
                       {saveNotice && <span className="small text-success">{saveNotice}</span>}
@@ -523,14 +767,6 @@ export default function EmailTemplatesPage() {
                       </Button>
                       <Button
                         size="sm"
-                        variant="outline-secondary"
-                        disabled={!dirty || saving || rewriting}
-                        onClick={handleCancelEdits}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        size="sm"
                         variant="primary"
                         disabled={!canSave || saving || rewriting}
                         onClick={handleSaveEdits}
@@ -545,6 +781,23 @@ export default function EmailTemplatesPage() {
                           "Save"
                         )}
                       </Button>
+                      <Dropdown align="end">
+                        <Dropdown.Toggle
+                          as="button"
+                          className="email-template-kebab-toggle"
+                          id="email-template-more-actions"
+                        >
+                          <ThreeDotsVertical size={16} />
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                          <Dropdown.Item
+                            disabled={!dirty || saving || rewriting}
+                            onClick={handleCancelEdits}
+                          >
+                            Cancel edits
+                          </Dropdown.Item>
+                        </Dropdown.Menu>
+                      </Dropdown>
                     </div>
                   )}
                 </div>
@@ -554,9 +807,9 @@ export default function EmailTemplatesPage() {
                     <span className="email-templates-empty-icon" aria-hidden>
                       <EnvelopePaper size={22} />
                     </span>
-                    <p className="mb-1 fw-medium">No template yet</p>
+                    <p className="mb-1 fw-medium">Your email will appear here</p>
                     <p className="text-body-secondary small mb-0">
-                      Fill in the form and generate — your subject and body will show up here.
+                      Choose your settings on the left and click Generate template.
                     </p>
                   </div>
                 )}
@@ -642,6 +895,22 @@ export default function EmailTemplatesPage() {
                     )}
                   </div>
                 )}
+
+                {hasResult && !loading && (
+                  <div className="d-flex align-items-center justify-content-between gap-2 mt-3">
+                    <span className="text-body-secondary small">Word count: {wordCount}</span>
+                    <Button
+                      size="sm"
+                      variant="outline-secondary"
+                      className="d-inline-flex align-items-center gap-1"
+                      disabled={!canSubmit || loading}
+                      onClick={() => void runGenerate()}
+                    >
+                      <ArrowClockwise size={13} />
+                      Regenerate
+                    </Button>
+                  </div>
+                )}
               </Card.Body>
             </Card>
           </Col>
@@ -650,7 +919,7 @@ export default function EmailTemplatesPage() {
         <Card className="shadow-sm border-0 email-templates-card mt-4">
           <Card.Body className="p-4">
             <div className="d-flex align-items-center justify-content-between mb-3">
-              <h2 className="h6 mb-0">History</h2>
+              <h2 className="h6 mb-0">Recent generations</h2>
               {historyLoading && <Spinner animation="border" size="sm" />}
             </div>
 

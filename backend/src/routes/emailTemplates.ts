@@ -13,7 +13,40 @@ const MAX_ATTACHMENT_BYTES = 5_242_880;
 const BUCKET = "email-template-uploads";
 const ATTACHMENT_SIGNED_URL_TTL_SECONDS = 900;
 const LENGTHS = new Set(["short", "standard", "detailed"]);
-const TONES = new Set(["professional", "casual"]);
+// "professional" and "casual" are the original values (kept as defaults for
+// backward compatibility); the rest were added for richer tone selection.
+const TONES = new Set(["professional", "friendly", "formal", "casual", "urgent", "persuasive"]);
+const EMAIL_TYPES = new Set([
+  "sales_outreach",
+  "follow_up",
+  "meeting_request",
+  "proposal",
+  "thank_you",
+  "introduction",
+  "partnership_inquiry",
+  "customer_onboarding",
+  "invoice_reminder",
+  "feedback_request",
+  "announcement",
+  "cold_email",
+  "referral_ask",
+  "complaint_response",
+  "welcome_email",
+  "re_engagement",
+]);
+const SENDER_ROLES = new Set([
+  "ceo",
+  "founder",
+  "sales_rep",
+  "account_manager",
+  "customer_support",
+  "marketing",
+  "hr",
+]);
+const RECIPIENT_TYPES = new Set(["prospect", "customer", "partner", "employee", "vendor", "investor"]);
+
+const SHORT_FIELD_MAX = 120;
+const CONTEXT_FIELD_MAX = 1000;
 
 type BrochureInput = {
   storage_path?: string;
@@ -34,6 +67,53 @@ type UsagePayload = {
 
 function trimOrEmpty(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function capLen(value: unknown, max: number): string {
+  return trimOrEmpty(value).slice(0, max);
+}
+
+type EmailContext = {
+  emailType: string;
+  senderRole: string;
+  recipientType: string;
+  senderName: string;
+  recipientName: string;
+  productOrService: string;
+  specificContext: string;
+};
+
+function parseEmailContext(body: {
+  email_type?: unknown;
+  sender_role?: unknown;
+  recipient_type?: unknown;
+  sender_name?: unknown;
+  recipient_name?: unknown;
+  product_or_service?: unknown;
+  specific_context?: unknown;
+}): EmailContext | { error: string } {
+  const emailType = trimOrEmpty(body.email_type);
+  if (emailType && !EMAIL_TYPES.has(emailType)) {
+    return { error: "Invalid email type" };
+  }
+  const senderRole = trimOrEmpty(body.sender_role);
+  if (senderRole && !SENDER_ROLES.has(senderRole)) {
+    return { error: "Invalid sender role" };
+  }
+  const recipientType = trimOrEmpty(body.recipient_type);
+  if (recipientType && !RECIPIENT_TYPES.has(recipientType)) {
+    return { error: "Invalid recipient type" };
+  }
+
+  return {
+    emailType,
+    senderRole,
+    recipientType,
+    senderName: capLen(body.sender_name, SHORT_FIELD_MAX),
+    recipientName: capLen(body.recipient_name, SHORT_FIELD_MAX),
+    productOrService: capLen(body.product_or_service, SHORT_FIELD_MAX),
+    specificContext: capLen(body.specific_context, CONTEXT_FIELD_MAX),
+  };
 }
 
 function parseLengthTone(body: { length?: unknown; tone?: unknown }): {
@@ -334,6 +414,13 @@ router.post(
       brochure?: BrochureInput;
       length?: unknown;
       tone?: unknown;
+      email_type?: unknown;
+      sender_role?: unknown;
+      recipient_type?: unknown;
+      sender_name?: unknown;
+      recipient_name?: unknown;
+      product_or_service?: unknown;
+      specific_context?: unknown;
     };
 
     const userRequest = trimOrEmpty(body.user_request);
@@ -343,6 +430,10 @@ router.post(
     const style = parseLengthTone(body);
     if (style.error) {
       return res.status(400).json({ error: style.error });
+    }
+    const context = parseEmailContext(body);
+    if ("error" in context) {
+      return res.status(400).json({ error: context.error });
     }
 
     if (!companyProfile && !companyWebsite && !userRequest) {
@@ -473,6 +564,13 @@ router.post(
           company_website: companyWebsite,
           length: style.length,
           tone: style.tone,
+          email_type: context.emailType,
+          sender_role: context.senderRole,
+          recipient_type: context.recipientType,
+          sender_name: context.senderName,
+          recipient_name: context.recipientName,
+          product_or_service: context.productOrService,
+          specific_context: context.specificContext,
           ...(brochurePayload ? { brochure: brochurePayload } : {}),
         }),
       });

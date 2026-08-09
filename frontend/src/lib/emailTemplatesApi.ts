@@ -52,7 +52,48 @@ export type GenerateEmailTemplateResult = {
 };
 
 export type EmailTemplateLength = "short" | "standard" | "detailed";
-export type EmailTemplateTone = "professional" | "casual";
+export type EmailTemplateTone =
+  | "professional"
+  | "friendly"
+  | "formal"
+  | "casual"
+  | "urgent"
+  | "persuasive";
+
+export type EmailTemplateEmailType =
+  | "sales_outreach"
+  | "follow_up"
+  | "meeting_request"
+  | "proposal"
+  | "thank_you"
+  | "introduction"
+  | "partnership_inquiry"
+  | "customer_onboarding"
+  | "invoice_reminder"
+  | "feedback_request"
+  | "announcement"
+  | "cold_email"
+  | "referral_ask"
+  | "complaint_response"
+  | "welcome_email"
+  | "re_engagement";
+
+export type EmailTemplateSenderRole =
+  | "ceo"
+  | "founder"
+  | "sales_rep"
+  | "account_manager"
+  | "customer_support"
+  | "marketing"
+  | "hr";
+
+export type EmailTemplateRecipientType =
+  | "prospect"
+  | "customer"
+  | "partner"
+  | "employee"
+  | "vendor"
+  | "investor";
 
 export type EmailTemplateAttachmentMeta = {
   storage_path: string;
@@ -69,7 +110,49 @@ export const EMAIL_TEMPLATE_LENGTHS: { value: EmailTemplateLength; label: string
 
 export const EMAIL_TEMPLATE_TONES: { value: EmailTemplateTone; label: string }[] = [
   { value: "professional", label: "Professional" },
+  { value: "friendly", label: "Friendly" },
+  { value: "formal", label: "Formal" },
   { value: "casual", label: "Casual" },
+  { value: "urgent", label: "Urgent" },
+  { value: "persuasive", label: "Persuasive" },
+];
+
+export const EMAIL_TEMPLATE_EMAIL_TYPES: { value: EmailTemplateEmailType; label: string }[] = [
+  { value: "sales_outreach", label: "Sales outreach" },
+  { value: "follow_up", label: "Follow-up" },
+  { value: "meeting_request", label: "Meeting request" },
+  { value: "proposal", label: "Proposal" },
+  { value: "thank_you", label: "Thank you" },
+  { value: "introduction", label: "Introduction" },
+  { value: "partnership_inquiry", label: "Partnership inquiry" },
+  { value: "customer_onboarding", label: "Customer onboarding" },
+  { value: "invoice_reminder", label: "Invoice reminder" },
+  { value: "feedback_request", label: "Feedback request" },
+  { value: "announcement", label: "Announcement" },
+  { value: "cold_email", label: "Cold email" },
+  { value: "referral_ask", label: "Referral ask" },
+  { value: "complaint_response", label: "Complaint response" },
+  { value: "welcome_email", label: "Welcome email" },
+  { value: "re_engagement", label: "Re-engagement" },
+];
+
+export const EMAIL_TEMPLATE_SENDER_ROLES: { value: EmailTemplateSenderRole; label: string }[] = [
+  { value: "ceo", label: "CEO" },
+  { value: "founder", label: "Founder" },
+  { value: "sales_rep", label: "Sales Rep" },
+  { value: "account_manager", label: "Account Manager" },
+  { value: "customer_support", label: "Customer Support" },
+  { value: "marketing", label: "Marketing" },
+  { value: "hr", label: "HR" },
+];
+
+export const EMAIL_TEMPLATE_RECIPIENT_TYPES: { value: EmailTemplateRecipientType; label: string }[] = [
+  { value: "prospect", label: "Prospect" },
+  { value: "customer", label: "Customer" },
+  { value: "partner", label: "Partner" },
+  { value: "employee", label: "Employee" },
+  { value: "vendor", label: "Vendor" },
+  { value: "investor", label: "Investor" },
 ];
 
 function safeFilename(name: string): string {
@@ -134,6 +217,14 @@ export function generateEmailTemplate(body: {
   tone?: EmailTemplateTone;
   /** Stored as brochure kind in DB; wire format unchanged. */
   brochure?: EmailTemplateAttachmentMeta;
+  /** All fields below are optional generation context — not persisted, forwarded to the AI provider only. */
+  email_type?: EmailTemplateEmailType | "";
+  sender_role?: EmailTemplateSenderRole | "";
+  recipient_type?: EmailTemplateRecipientType | "";
+  sender_name?: string;
+  recipient_name?: string;
+  product_or_service?: string;
+  specific_context?: string;
 }): Promise<GenerateEmailTemplateResult> {
   return apiPost("/api/email-templates/generate", body);
 }
